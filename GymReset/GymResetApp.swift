@@ -242,8 +242,9 @@ final class WorkoutStore: ObservableObject {
         return WorkoutDay.foundationDays[(index + 1) % WorkoutDay.foundationDays.count]
     }
 
-    func complete(_ day: WorkoutDay, duration: Int, name: String? = nil) {
-        history.insert(CompletedWorkout(id: UUID(), day: day, date: .now, duration: max(duration, 1), name: name), at: 0)
+    func complete(_ day: WorkoutDay, duration: Int, name: String? = nil, date: Date = .now) {
+        history.append(CompletedWorkout(id: UUID(), day: day, date: date, duration: max(duration, 1), name: name))
+        history.sort { $0.date > $1.date }
     }
 
     private func save() {
@@ -525,14 +526,16 @@ struct WorkoutSessionView: View {
             }
             .alert("End this workout?", isPresented: $showExitAlert) {
                 Button("Keep training", role: .cancel) {}
-                Button("End workout", role: .destructive) { dismiss() }
-            } message: { Text("Your completed sets will not be saved.") }
+                Button("Log workout") { logWorkout() }
+                Button("End without logging", role: .destructive) { dismiss() }
+            } message: { Text("Did some or all of this workout? You can save it to your history now.") }
             .alert("Workout complete", isPresented: $showFinished) {
                 Button("Done") { dismiss() }
             } message: { Text("Nice work. Your next session is ready whenever you are.") }
-            .alert("No more exercises", isPresented: $showSkippedEnd) {
-                Button("Done") { dismiss() }
-            } message: { Text("This workout was not saved because the final exercise was skipped.") }
+            .alert("Log this workout?", isPresented: $showSkippedEnd) {
+                Button("Log workout") { logWorkout() }
+                Button("Don't log", role: .cancel) { dismiss() }
+            } message: { Text("If you did this workout, save it to your history even though you skipped the last exercise.") }
         }
     }
 
@@ -564,6 +567,11 @@ struct WorkoutSessionView: View {
         setsFinished = 0
         restSeconds = 0
         isResting = false
+    }
+
+    private func logWorkout() {
+        store.complete(day, duration: elapsedSeconds / 60, name: workout.displayName)
+        dismiss()
     }
 
     private func time(_ seconds: Int) -> String {
@@ -680,28 +688,7 @@ struct WorkoutPlanDetail: View {
 
                 Text("WORKOUT").font(.caption.bold()).tracking(1).foregroundStyle(.secondary).padding(.horizontal, 2)
                 ForEach(Array(day.workout.exercises.enumerated()), id: \.element.id) { offset, exercise in
-                    DisclosureGroup {
-                        VStack(alignment: .leading, spacing: 11) {
-                            Text(exercise.equipment).font(.subheadline.weight(.medium)).foregroundStyle(.secondary)
-                            ForEach(Array(exercise.cues.enumerated()), id: \.offset) { cue in
-                                HStack(alignment: .top, spacing: 8) {
-                                    Text("\(cue.offset + 1)").font(.caption2.bold()).foregroundStyle(Color.gymInk).frame(width: 20, height: 20).background(Color.gymMint, in: Circle())
-                                    Text(cue.element).font(.subheadline)
-                                }
-                            }
-                            Label(exercise.watchOut, systemImage: "exclamationmark.triangle.fill").font(.caption).foregroundStyle(.orange)
-                            if let swap = exercise.swap { Text(swap).font(.caption).foregroundStyle(.secondary) }
-                        }.padding(.top, 10)
-                    } label: {
-                        HStack(spacing: 12) {
-                            Text("\(offset + 1)").font(.caption.bold()).foregroundStyle(day.accent).frame(width: 28, height: 28).background(day.accent.opacity(0.12), in: Circle())
-                            VStack(alignment: .leading, spacing: 3) {
-                                Text(exercise.name).font(.headline)
-                                Text("\(exercise.sets) sets × \(exercise.reps)  ·  \(exercise.rest)s rest").font(.caption).foregroundStyle(.secondary)
-                            }
-                        }
-                    }
-                    .padding(16).background(Color.gymCard, in: RoundedRectangle(cornerRadius: 18))
+                    WorkoutPlanExerciseRow(exercise: exercise, number: offset + 1, accent: day.accent)
                 }
 
                 Button { showingSession = true } label: {
@@ -720,6 +707,41 @@ struct WorkoutPlanDetail: View {
                 .presentationDragIndicator(.hidden)
         }
     }
+}
+
+private struct WorkoutPlanExerciseRow: View {
+    let exercise: Exercise
+    let number: Int
+    let accent: Color
+
+    var body: some View {
+        Button {
+            showingGuide = true
+        } label: {
+            HStack(spacing: 12) {
+                Text("\(number)").font(.caption.bold()).foregroundStyle(accent)
+                    .frame(width: 28, height: 28).background(accent.opacity(0.12), in: Circle())
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(exercise.name).font(.headline).foregroundStyle(.primary)
+                    Text("\(exercise.sets) sets × \(exercise.reps)  ·  \(exercise.rest)s rest")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+                Spacer()
+                Image(systemName: "info.circle").foregroundStyle(accent)
+            }
+            .padding(16).contentShape(Rectangle())
+            .background(Color.gymCard, in: RoundedRectangle(cornerRadius: 18))
+        }
+        .buttonStyle(.plain)
+        .accessibilityHint("Shows exercise instructions")
+        .sheet(isPresented: $showingGuide) {
+            PlannerExerciseInfoView(exercise: exercise)
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
+        }
+    }
+
+    @State private var showingGuide = false
 }
 
 struct PlannedDay: Codable, Identifiable {
@@ -892,6 +914,7 @@ private struct WeekDayCard: View {
     let index: Int
     @ObservedObject var store: WeekPlannerStore
     let onStart: () -> Void
+    @State private var selectedExercise: Exercise?
 
     private var isRestDay: Bool { day.primary == nil && day.secondary == nil }
 
@@ -918,12 +941,32 @@ private struct WeekDayCard: View {
             } else {
                 Divider()
                 ForEach(store.exercises(for: day), id: \.self) { exercise in
-                    Toggle(exercise, isOn: Binding(
-                        get: { store.days[index].selectedExercises.contains(exercise) },
-                        set: { store.setSelected(exercise, selected: $0, for: index) }
-                    ))
-                    .font(.subheadline)
-                    .tint(.gymMint)
+                    HStack(spacing: 10) {
+                        Button {
+                            selectedExercise = [day.primary, day.secondary]
+                                .compactMap { $0 }
+                                .flatMap { $0.workout.exercises }
+                                .first { $0.name == exercise }
+                        } label: {
+                            HStack(spacing: 7) {
+                                Text(exercise).multilineTextAlignment(.leading)
+                                Image(systemName: "info.circle").font(.caption).foregroundStyle(Color.gymMint)
+                            }
+                            .font(.subheadline)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityHint("Shows exercise instructions")
+
+                        Toggle("Include \(exercise)", isOn: Binding(
+                            get: { store.days[index].selectedExercises.contains(exercise) },
+                            set: { store.setSelected(exercise, selected: $0, for: index) }
+                        ))
+                        .labelsHidden()
+                        .tint(.gymMint)
+                    }
+                    .padding(.vertical, 4)
                 }
                 if store.workout(for: day) != nil {
                     Button(action: onStart) {
@@ -938,6 +981,11 @@ private struct WeekDayCard: View {
             }
         }
         .padding(18).background(Color.gymCard, in: RoundedRectangle(cornerRadius: 22))
+        .sheet(item: $selectedExercise) { exercise in
+            PlannerExerciseInfoView(exercise: exercise)
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
+        }
     }
 
     @ViewBuilder
@@ -964,8 +1012,61 @@ private struct WeekDayCard: View {
     }
 }
 
+private struct PlannerExerciseInfoView: View {
+    @Environment(\.dismiss) private var dismiss
+    let exercise: Exercise
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    Image(systemName: exercise.symbol)
+                        .font(.system(size: 42)).foregroundStyle(Color.gymInk)
+                        .frame(width: 80, height: 80)
+                        .background(Color.gymMint, in: RoundedRectangle(cornerRadius: 24))
+                    Text(exercise.name).font(.largeTitle.bold())
+                    HStack(spacing: 8) {
+                        MetricPill(label: "SETS", value: "\(exercise.sets)")
+                        MetricPill(label: "REPS", value: exercise.reps)
+                        MetricPill(label: "REST", value: "\(exercise.rest)s")
+                    }
+                    Label(exercise.equipment, systemImage: "dumbbell.fill")
+                        .font(.subheadline.weight(.medium)).foregroundStyle(.secondary)
+                    VStack(alignment: .leading, spacing: 12) {
+                        Label("How to do it", systemImage: "figure.walk").font(.headline)
+                        ForEach(Array(exercise.cues.enumerated()), id: \.offset) { index, cue in
+                            HStack(alignment: .top, spacing: 10) {
+                                Text("\(index + 1)").font(.caption.bold()).foregroundStyle(.white)
+                                    .frame(width: 22, height: 22).background(Color.gymMint, in: Circle())
+                                Text(cue).font(.subheadline)
+                            }
+                        }
+                    }
+                    .padding(16).background(Color.gymCard, in: RoundedRectangle(cornerRadius: 20))
+                    Label(exercise.watchOut, systemImage: "exclamationmark.triangle.fill")
+                        .font(.subheadline).foregroundStyle(.orange)
+                    if let swap = exercise.swap {
+                        Text(swap).font(.subheadline).foregroundStyle(.secondary)
+                    }
+                }
+                .padding(20)
+            }
+            .background(Color.gymCanvas)
+            .navigationTitle(exercise.name)
+            .gymInlineNavigationTitle()
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { dismiss() }
+                }
+            }
+        }
+    }
+}
+
 struct ProgressView: View {
     @EnvironmentObject private var store: WorkoutStore
+    @EnvironmentObject private var planner: WeekPlannerStore
+    @State private var showingManualLog = false
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -985,12 +1086,18 @@ struct ProgressView: View {
                     }
                     .padding(22).foregroundStyle(.white).background(Color.gymInk, in: RoundedRectangle(cornerRadius: 28))
 
+                    Button { showingManualLog = true } label: {
+                        Label("Log a past workout", systemImage: "calendar.badge.plus")
+                            .frame(maxWidth: .infinity).padding(.vertical, 5)
+                    }
+                    .buttonStyle(.borderedProminent).tint(.gymMint).foregroundStyle(.white)
+
                     Text("HISTORY").font(.caption.bold()).tracking(1).foregroundStyle(.secondary).padding(.top, 4)
                     if store.history.isEmpty {
                         VStack(spacing: 12) {
                             Image(systemName: "figure.strengthtraining.traditional").font(.system(size: 34)).foregroundStyle(Color.gymMint)
                             Text("Your history starts here").font(.headline)
-                            Text("Finish a workout and it will stay saved on this device.").font(.subheadline).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                            Text("Finish a workout or log one later. It stays saved on this device.").font(.subheadline).foregroundStyle(.secondary).multilineTextAlignment(.center)
                         }
                         .frame(maxWidth: .infinity).padding(28).background(Color.gymCard, in: RoundedRectangle(cornerRadius: 22))
                     } else {
@@ -1017,7 +1124,73 @@ struct ProgressView: View {
             .background(Color.gymCanvas)
             .navigationTitle("Progress")
             .gymInlineNavigationTitle()
+            .sheet(isPresented: $showingManualLog) {
+                ManualWorkoutLogView()
+            }
         }
+    }
+}
+
+private struct ManualWorkoutLogOption: Identifiable {
+    let id: String
+    let title: String
+    let day: WorkoutDay
+}
+
+private struct ManualWorkoutLogView: View {
+    @EnvironmentObject private var store: WorkoutStore
+    @EnvironmentObject private var planner: WeekPlannerStore
+    @Environment(\.dismiss) private var dismiss
+    @State private var selectedID = "focus-\(WorkoutDay.foundation.rawValue)"
+    @State private var date = Calendar.current.startOfDay(for: .now)
+    @State private var duration = 45
+
+    private var options: [ManualWorkoutLogOption] {
+        let focusOptions = WorkoutDay.allCases.map {
+            ManualWorkoutLogOption(id: "focus-\($0.rawValue)", title: $0.rawValue, day: $0)
+        }
+        let plannedOptions = planner.days.compactMap { plannedDay -> ManualWorkoutLogOption? in
+            guard let workout = planner.workout(for: plannedDay) else { return nil }
+            return ManualWorkoutLogOption(id: "planned-\(plannedDay.id)", title: workout.displayName, day: workout.day)
+        }
+        return focusOptions + plannedOptions
+    }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Workout") {
+                    Picker("Session", selection: $selectedID) {
+                        ForEach(options) { option in
+                            Text(option.title).tag(option.id)
+                        }
+                    }
+                    DatePicker("Date", selection: $date, in: ...Date.now, displayedComponents: .date)
+                    Stepper("Duration: \(duration) minutes", value: $duration, in: 1...180, step: 5)
+                }
+                Section {
+                    Text("Saved on this device. You can log it now even if you did not track the workout live.")
+                        .font(.footnote).foregroundStyle(.secondary)
+                }
+            }
+            .navigationTitle("Log a workout")
+            .gymInlineNavigationTitle()
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") { saveLog() }
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
+    }
+
+    private func saveLog() {
+        guard let option = options.first(where: { $0.id == selectedID }) else { return }
+        store.complete(option.day, duration: duration, name: option.title, date: date)
+        dismiss()
     }
 }
 
