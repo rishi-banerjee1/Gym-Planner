@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#111827">
+  <meta name="description" content="A calm, dumbbell-first gym companion for 45-minute workouts.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="icon" href="icon-192.png" sizes="192x192" type="image/png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" sizes="180x180">
+  <title>Gym Reset</title>
+  <style>
+    :root { --ink:#111827; --muted:#334155; --paper:#f8fafc; --card:#ffffff; --line:#cbd5e1; --teal:#1d4ed8; --deep:#111827; --orange:#b45309; --shadow:0 8px 22px rgba(15,23,42,.12); }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; color:var(--ink); background:var(--paper); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; -webkit-font-smoothing:antialiased; }
+    button { font:inherit; cursor:pointer; }
+    :focus-visible { outline:3px solid #f59e0b; outline-offset:3px; }
+    .app { width:min(100%,560px); min-height:100vh; margin:auto; padding:calc(24px + env(safe-area-inset-top)) 20px calc(94px + env(safe-area-inset-bottom)); background:var(--paper); }
+    .eyebrow { margin:0 0 9px; color:var(--teal); font-size:12px; font-weight:800; letter-spacing:1.5px; }
+    h1 { max-width:400px; margin:0; font-family:ui-rounded,"SF Pro Rounded",-apple-system,sans-serif; font-size:40px; line-height:1.04; letter-spacing:-1.7px; }
+    h2 { margin:0; font-size:25px; letter-spacing:-.5px; } h3 { margin:0; font-size:17px; } p { line-height:1.5; }
+    .subtle { color:var(--muted); } .small { font-size:13px; } .hidden { display:none!important; }
+    .card { margin-top:24px; padding:21px; background:var(--card); border:1px solid var(--line); border-radius:24px; box-shadow:var(--shadow); }
+    .hero-card { position:relative; overflow:hidden; color:#fff; border:0; background:#111827; } .hero-card::before { content:""; position:absolute; inset:0; pointer-events:none; background:linear-gradient(100deg,rgba(17,24,39,.98) 8%,rgba(17,24,39,.68) 72%),url("assets/workout-hero.jpg") center 38%/cover; } .hero-card > * { position:relative; z-index:1; } .hero-card .next-label,.hero-card .workout-title p { color:#e2e8f0; } .hero-card .mark { color:#fff; background:rgba(255,255,255,.18); } .hero-card .button { color:#111827; background:#fff; }
+    .today-header { display:flex; align-items:center; justify-content:space-between; gap:16px; } .today-header .eyebrow { margin:0 0 4px; } .brand-mark { display:grid; place-items:center; width:48px; height:48px; color:#fff; background:var(--teal); border-radius:50%; font-size:21px; } .today-header h1 { font-size:27px; letter-spacing:-1px; } .hero-card { margin-top:22px; padding:22px; border-radius:30px; } .hero-card .next-label { justify-content:space-between; } .hero-card .next-label::after { content:"45 MIN"; font-size:11px; } .hero-card .workout-title { margin:22px 0 26px; } .hero-card h2 { font-size:30px; } .hero-card .button { display:flex; justify-content:space-between; align-items:center; } .hero-card .button::after { content:"→"; font-size:22px; } .insights { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px; } .insight { display:flex; gap:9px; align-items:flex-start; min-height:80px; padding:15px; background:var(--card); border:1px solid var(--line); border-radius:20px; } .insight b { display:block; font-size:20px; } .insight span { display:block; margin-top:3px; color:var(--muted); font-size:12px; line-height:1.25; } .insight i { color:var(--teal); font-style:normal; font-size:16px; } .tip { margin-top:14px; padding:18px; background:#eff6ff; border-color:#bfdbfe; box-shadow:none; } .tip h3 { display:flex; gap:8px; align-items:center; } .tip h3::before { content:"✦"; color:var(--teal); }
+    .next-label { display:flex; align-items:center; gap:7px; color:var(--teal); font-size:12px; font-weight:800; letter-spacing:1px; }
+    .workout-title { display:flex; gap:14px; align-items:center; margin:15px 0 18px; }
+    .mark { display:grid; place-items:center; flex:none; width:54px; height:54px; border-radius:18px; color:var(--teal); background:#dcefeb; font-size:27px; }
+    .workout-title p { margin:3px 0 0; color:var(--muted); }
+    .button { width:100%; border:0; border-radius:999px; padding:16px 18px; color:#fff; background:var(--deep); font-weight:800; font-size:16px; }
+    .button:active { transform:scale(.99); } .button.secondary { color:var(--deep); background:#dcefeb; } .button.ghost { color:var(--deep); background:transparent; border:1px solid #b7cfcb; }
+    .tip { padding:18px; background:#e8f1ee; border-radius:18px; } .tip h3 { margin-bottom:6px; } .tip p { margin:0; font-size:15px; }
+    .tabs { position:fixed; z-index:2; bottom:0; left:50%; transform:translateX(-50%); display:flex; width:min(100%,560px); padding:9px 18px calc(9px + env(safe-area-inset-bottom)); background:rgba(251,253,251,.92); border-top:1px solid var(--line); backdrop-filter:blur(16px); }
+    .tab { flex:1; border:0; padding:7px; color:var(--muted); background:transparent; font-size:12px; font-weight:700; } .tab span { display:block; margin-bottom:3px; font-size:20px; } .tab.active { color:var(--teal); }
+    .topbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; } .text-button { border:0; padding:8px 0; color:var(--teal); background:none; font-weight:800; }
+    .progress-track { height:7px; margin:0 -20px; background:#dce7e4; } .progress-fill { height:100%; background:var(--teal); transition:width .25s; }
+    .session-meta { display:flex; justify-content:space-between; padding:13px 0; color:var(--muted); font-size:14px; font-weight:700; }
+    .exercise-icon { display:grid; place-items:center; width:80px; height:80px; margin:10px 0 18px; border-radius:27px; color:var(--teal); background:#dcefeb; font-size:39px; }
+    .metrics { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:18px 0; } .metric { padding:11px 9px; background:#f2f0ea; border-radius:12px; } .metric b { display:block; margin-bottom:4px; font-size:11px; color:var(--muted); letter-spacing:.8px; } .metric span { font-size:14px; font-weight:800; }
+    .details { padding:18px; background:#f1f4f1; border-radius:18px; } .details h3 { margin-bottom:11px; } .cue { display:flex; gap:10px; margin:11px 0; line-height:1.4; } .cue i { display:grid; place-items:center; width:22px; height:22px; flex:none; border-radius:50%; color:#fff; background:var(--teal); font-style:normal; font-size:12px; font-weight:800; }
+    .warning { margin-top:14px; color:#9d491a; font-size:14px; font-weight:650; }
+    .session-actions { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:min(100%,560px); padding:13px 20px calc(13px + env(safe-area-inset-bottom)); background:rgba(246,243,235,.94); border-top:1px solid var(--line); backdrop-filter:blur(16px); } .session-actions .ghost { margin-top:8px; padding:12px; }
+    .rest { display:flex; justify-content:space-between; align-items:center; padding:11px 0; color:var(--deep); font-weight:800; } .rest strong { font-variant-numeric:tabular-nums; }
+    .plan-intro { margin:10px 0 22px; color:var(--muted); } .plan-card { width:100%; display:flex; gap:12px; align-items:center; margin:10px 0; padding:16px; text-align:left; border:1px solid var(--line); border-radius:22px; color:var(--ink); background:var(--card); box-shadow:0 4px 14px rgba(10,42,38,.04); } .plan-card > span:last-child { margin-left:auto; color:var(--muted); } .plan-card p { margin:3px 0 0; color:var(--muted); font-size:14px; }
+    .exercise-row { display:flex; gap:12px; padding:15px 0; border-bottom:1px solid var(--line); } .exercise-row:last-child { border:0; } .exercise-row .row-icon { width:28px; color:var(--teal); font-size:22px; text-align:center; } .exercise-row p { margin:4px 0 0; color:var(--muted); font-size:14px; }
+    .empty { margin-top:36px; padding:30px 18px; text-align:center; color:var(--muted); border:1px dashed #b7cfcb; border-radius:22px; } .history { list-style:none; margin:14px 0; padding:0; } .history li { display:flex; justify-content:space-between; gap:10px; padding:15px 0; border-bottom:1px solid var(--line); } .history li:last-child { border:0; } .history strong { display:block; } .history small { color:var(--muted); }
+    .mode-switch { display:flex; gap:7px; margin:18px 0; padding:5px; border-radius:15px; background:#e8e5dc; } .mode-switch button { flex:1; padding:9px 5px; border:0; border-radius:11px; color:var(--muted); background:transparent; font-size:12px; font-weight:800; } .mode-switch button.active { color:var(--deep); background:var(--card); box-shadow:0 2px 7px rgba(20,40,34,.12); }
+    .planner-note { padding:16px; color:#31524d; background:#e8f1ee; border-radius:17px; font-size:14px; line-height:1.45; } .planner-day { margin:12px 0; padding:16px; background:var(--card); border:1px solid var(--line); border-radius:17px; } .planner-day header { display:flex; align-items:center; justify-content:space-between; gap:12px; } .planner-day select { max-width:180px; min-height:44px; padding:8px; border:1px solid #b7cfcb; border-radius:10px; color:var(--ink); background:#fff; font:inherit; font-size:13px; } .planner-exercises { margin-top:12px; padding-top:8px; border-top:1px solid var(--line); } .planner-exercises label { display:flex; gap:9px; align-items:center; min-height:44px; padding:7px 0; font-size:14px; } .planner-exercises input { width:18px; height:18px; accent-color:var(--teal); } .rest-day { margin-top:12px; color:var(--muted); font-size:14px; }
+    .screen-header { margin-bottom:22px; } .screen-header h1 { font-size:34px; } .screen-header p { margin:8px 0 0; color:var(--muted); }
+    #session-screen { margin:-24px -20px -94px; padding:calc(20px + env(safe-area-inset-top)) 20px calc(118px + env(safe-area-inset-bottom)); min-height:100vh; color:#fff; background:var(--deep); } #session-screen .topbar { margin:0 0 18px; } #session-screen .text-button { color:#fff; } #session-screen .progress-track { margin:0; border-radius:99px; overflow:hidden; background:rgba(255,255,255,.24); } #session-screen .progress-fill { background:#60a5fa; } #session-screen .session-meta { color:#e2e8f0; } #session-screen h1 { color:#fff; font-size:38px; } #session-screen .exercise-icon { color:#fff; background:var(--teal); } #session-screen .metrics { margin:20px 0 12px; } #session-screen .metric { color:#fff; background:rgba(255,255,255,.14); } #session-screen .metric b { color:#e2e8f0; } #session-screen #equipment { margin:14px 0 20px; color:#e2e8f0; } #session-screen .details { color:#111827; background:#fff; border-radius:24px; } #session-screen .session-actions { padding:14px 20px calc(14px + env(safe-area-inset-bottom)); background:rgba(17,24,39,.97); border-top:1px solid rgba(255,255,255,.2); } #session-screen .session-actions .button { color:#fff; background:var(--teal); } #session-screen .session-actions .ghost { color:#fff; border-color:rgba(255,255,255,.5); background:transparent; }
+    .plan-intro { margin:8px 0 18px; } .mode-switch { margin:0 0 20px; padding:4px; background:#dfe9e5; border-radius:15px; } .mode-switch button.active { color:#fff; background:var(--deep); box-shadow:none; }
+    #progress-screen .card { display:flex; align-items:end; justify-content:space-between; min-height:150px; color:#fff; background:linear-gradient(135deg,#111827,#1e3a8a); border:0; } #progress-screen .card p { margin:0 0 4px; color:#dbeafe; } #progress-screen .card h1 { font-size:62px; } #progress-screen .card::after { content:"✓"; display:grid; place-items:center; width:58px; height:58px; color:#fff; background:var(--teal); border-radius:50%; font-size:28px; font-weight:900; } #progress-screen .history { margin-top:20px; padding:0 16px; background:var(--card); border:1px solid var(--line); border-radius:22px; } #progress-screen .empty { background:var(--card); border-style:solid; }
+    .planner-note { color:#fff; background:var(--deep); border-radius:22px; } .planner-day { padding:18px; border-radius:22px; box-shadow:0 4px 14px rgba(15,23,42,.08); } .planner-day header strong { font-size:16px; } .planner-day select { border-radius:12px; background:#fff; } .planner-exercises { border-color:var(--line); } .planner-exercises label { padding:9px 0; } .button:disabled { color:#475569; background:#e2e8f0; cursor:not-allowed; }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section id="today-screen">
+      <header class="today-header"><div><p class="eyebrow">GYM RESET</p><h1>Ready when you are.</h1></div><div class="brand-mark">⌁</div></header>
+      <article class="card hero-card">
+        <div class="next-label" id="next-label">⚡ NEXT UP</div>
+        <div class="workout-title"><div class="mark" id="today-icon">🏋️</div><div><h2 id="today-name"></h2><p id="today-subtitle"></p></div></div>
+        <button class="button" id="start-button">Start workout</button>
+      </article>
+      <div class="insights"><article class="insight"><i>◫</i><div><b id="planned-count">0</b><span>planned sessions</span></div></article><article class="insight"><i>◌</i><div><b>2</b><span>reps in reserve target</span></div></article></div>
+      <article class="tip card"><h3>Your reset rule</h3><p>Leave two clean reps in reserve. The win is showing up again, not exhausting yourself on day one.</p></article>
+    </section>
+
+    <section id="session-screen" class="hidden">
+      <div class="topbar"><button class="text-button" id="end-button">End</button><b id="session-clock">00:00</b></div>
+      <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+      <div class="session-meta"><span id="exercise-count"></span><span id="set-count"></span></div>
+      <div class="exercise-icon" id="exercise-icon"></div>
+      <h1 id="exercise-name"></h1>
+      <div class="metrics"><div class="metric"><b>SETS</b><span id="metric-sets"></span></div><div class="metric"><b>REPS</b><span id="metric-reps"></span></div><div class="metric"><b>REST</b><span id="metric-rest"></span></div></div>
+      <p class="subtle" id="equipment"></p>
+      <div class="details"><h3>How to do it</h3><div id="cues"></div><p class="warning" id="watchout"></p><p class="subtle small" id="swap"></p></div>
+      <div class="session-actions"><div class="rest hidden" id="rest-box"><span>Rest</span><strong id="rest-clock">01:00</strong><button class="text-button" id="skip-rest">Skip</button></div><button class="button" id="complete-button"></button><button class="button ghost" id="skip-exercise">Skip this exercise</button></div>
+    </section>
+
+    <section id="plan-screen" class="hidden"><header class="screen-header"><p class="eyebrow">TRAINING MODES</p><h1>Train with intent.</h1><p>Pick the session that fits today or shape a week around your real life.</p></header><div class="mode-switch"><button data-mode="foundation">Foundation</button><button data-mode="advanced">Advanced</button><button data-mode="planner">My week</button></div><div id="plan-list"></div><div id="plan-detail"></div></section>
+    <section id="progress-screen" class="hidden"><header class="screen-header"><p class="eyebrow">YOUR MOMENTUM</p><h1>Progress that counts.</h1><p>Every completed session is a vote for the habit.</p></header><article class="card"><div><p>SESSIONS COMPLETED</p><h1 id="session-total">0</h1></div></article><div id="history-content"></div></section>
+  </main>
+  <nav class="tabs" aria-label="Main navigation"><button class="tab active" data-screen="today"><span>⌂</span>Today</button><button class="tab" data-screen="plan"><span>☷</span>Plan</button><button class="tab" data-screen="progress"><span>▥</span>Progress</button></nav>
+  <script>
+    const workouts = [
+      { id:'push', name:'Push', subtitle:'Chest, shoulders, triceps', icon:'⬆️', warmup:'5 minutes: easy walk, shoulder circles, wall push-ups and light presses.', exercises:[
+        ['Dumbbell floor press','⬆️','Two dumbbells',3,'8–10',75,['Lie down with knees bent and dumbbells over your chest.','Lower elbows until upper arms lightly touch the floor.','Press up smoothly, keeping wrists stacked over elbows.'],'Avoid flaring your elbows straight out to the sides.','Optional swap: barbell bench press if a safe bench and rack are available.'],
+        ['Dumbbell overhead press','⬆️','Two dumbbells',3,'8–10',75,['Start dumbbells at shoulder height with wrists stacked.','Brace your ribs down and press overhead.','Finish with biceps beside ears, then lower slowly.'],'Use a seated version if your lower back arches.',''],
+        ['Dumbbell lateral raise','↗️','Two light dumbbells',3,'12–15',45,['Stand tall with a slight elbow bend.','Raise arms out to the sides until about shoulder height.','Lower slowly and keep shoulders away from ears.'],'Use very light weight. This should not become a swing.',''],
+        ['Incline push-up','↗️','Bench or wall',2,'8–12',60,['Place hands on a bench or wall and make a straight line from head to heel.','Lower your chest toward your hands.','Push the surface away to return.'],'Use a higher surface if your lower back sags.',''],
+        ['Dumbbell triceps extension','⬆️','One dumbbell',2,'10–12',45,['Hold one dumbbell above your head with both hands.','Lower it behind your head by bending your elbows.','Straighten elbows without arching your back.'],'Keep elbows pointing forward, not wide apart.',''] ] },
+      { id:'pull', name:'Pull + Hinge', subtitle:'Back, hamstrings, biceps', icon:'↔️', warmup:'5 minutes: easy walk, light rows, hip hinges and arm circles.', exercises:[
+        ['Dumbbell Romanian deadlift','↙️','Two dumbbells',3,'8–10',75,['Keep the weights close to your legs.','Send your hips behind you with a long, neutral spine.','Stand by driving hips forward and squeezing glutes.'],'Stop before your back position changes.','Optional swap: barbell Romanian deadlift, 3 × 6–8.'],
+        ['Supported dumbbell row','↔️','Two dumbbells',3,'10–12',75,['Place chest against an incline bench, or hinge with both feet planted.','Pull elbows back toward your hips.','Lower slowly until shoulders feel stretched but controlled.'],'Do not shrug your shoulders toward your ears.',''],
+        ['Dumbbell rear-delt fly','↔️','Two light dumbbells',2,'12–15',45,['Hinge forward with a long back and a soft knee bend.','Raise arms out and back with a slight elbow bend.','Lower slowly without shrugging.'],'Use a very light weight and keep your neck relaxed.',''],
+        ['Hammer curl','💪','Two dumbbells',2,'10–12',45,['Keep palms facing in and elbows close to your ribs.','Curl without swinging your torso.','Lower for a controlled count of two.'],'Choose a weight you can lower slowly.',''],
+        ['Suitcase carry','🚶','One dumbbell',2,'30–40 sec each side',45,['Hold one dumbbell at your side and stand tall.','Walk slowly without leaning toward or away from the weight.','Breathe normally and keep shoulders level.'],'Use less weight if your posture changes.',''] ] },
+      { id:'legs', name:'Legs + Core', subtitle:'Quads, glutes, core', icon:'🏋️', warmup:'5 minutes: easy walk, ankle rocks, bodyweight squats and hip bridges.', exercises:[
+        ['Goblet squat','🏋️','One dumbbell',3,'8–10',75,['Hold one dumbbell vertically against your chest.','Sit between your hips with your whole foot on the floor.','Keep your chest tall, then stand by pushing the floor away.'],'Do not let your knees collapse inward.','Optional swap: barbell back squat, 3 × 6–8.'],
+        ['Dumbbell split squat','🚶','Two dumbbells',3,'8 each side',75,['Set feet hip-width apart, one foot forward and one back.','Lower straight down while keeping the front foot flat.','Drive through the front foot to stand.'],'Start bodyweight only until you feel stable.',''],
+        ['Dumbbell Romanian deadlift','↙️','Two dumbbells',3,'8–10',75,['Keep the weights close to your legs.','Send your hips behind you with a long, neutral spine.','Stand by driving hips forward and squeezing glutes.'],'Stop before your back position changes.','Optional swap: barbell Romanian deadlift, 3 × 6–8.'],
+        ['Dumbbell glute bridge','◡','One dumbbell',3,'10–12',60,['Lie on your back with feet flat and a dumbbell across your hips.','Drive through your heels to lift hips.','Squeeze glutes briefly at the top, then lower with control.'],'Keep ribs down instead of over-arching your lower back.',''],
+        ['Dead bug','◌','Bodyweight',2,'8 each side',45,['Lie on your back with knees and arms pointing up.','Gently press your lower back into the floor.','Slowly extend opposite arm and leg, then return.'],'Make the range smaller if your back lifts off the floor.',''] ] }
+    ];
+    const exercise = (name, icon, equipment, sets, reps, rest, cues, watchOut, swap='') => [name, icon, equipment, sets, reps, rest, cues, watchOut, swap];
+    const advancedWorkouts = [
+      { id:'chest', name:'Chest', subtitle:'Pressing strength and control', icon:'⬆️', warmup:'5 minutes: shoulder circles, wall push-ups and very light presses.', exercises:[
+        exercise('Dumbbell floor press','⬆️','Two dumbbells',4,'6–10',90,['Set shoulders firmly on the floor.','Lower until upper arms touch the floor softly.','Press up with wrists stacked over elbows.'],'Keep elbows about 45 degrees from your ribs.','Optional swap: barbell bench press.'),
+        exercise('Dumbbell squeeze press','⬆️','Two dumbbells',3,'10–12',75,['Press the dumbbells together over your chest.','Keep them touching as you lower.','Squeeze them together as you press.'],'Use a moderate load and move slowly.'),
+        exercise('Incline push-up','↗️','Bench or wall',3,'8–15',60,['Keep your body in one long line.','Lower your chest toward your hands.','Push the surface away.'],'Raise the surface if form breaks.'),
+        exercise('Dumbbell floor fly','↔️','Two light dumbbells',2,'10–12',60,['Keep a soft bend in both elbows.','Open arms until upper arms reach the floor.','Bring weights together using your chest.'],'Use light weights and a controlled range.') ] },
+      { id:'back', name:'Back', subtitle:'Rows, lats and upper back', icon:'↔️', warmup:'5 minutes: easy walk, shoulder circles and light rows.', exercises:[
+        exercise('One-arm dumbbell row','↔️','One dumbbell',4,'8–12 each side',75,['Brace one hand on a bench or thigh.','Pull the weight toward your back pocket.','Lower under control.'],'Do not twist your torso to lift.'),
+        exercise('Supported dumbbell row','↔️','Two dumbbells',3,'10–12',75,['Support your chest on an incline bench or hinge firmly.','Pull elbows toward hips.','Lower slowly.'],'Keep shoulders away from your ears.'),
+        exercise('Dumbbell pullover','◡','One dumbbell',3,'10–12',60,['Lie across a bench or on the floor.','Hold one dumbbell above your chest.','Lower it behind your head only as far as your shoulders allow.'],'Keep your ribs from flaring up.'),
+        exercise('Dumbbell rear-delt fly','↔️','Two light dumbbells',2,'12–15',45,['Hinge forward with a long spine.','Raise arms out and back.','Lower with control.'],'Use light weight and avoid shrugging.') ] },
+      { id:'shoulders', name:'Shoulders', subtitle:'Pressing and side delts', icon:'⬆️', warmup:'5 minutes: arm circles, wall slides and light presses.', exercises:[
+        exercise('Dumbbell overhead press','⬆️','Two dumbbells',4,'6–10',90,['Begin at shoulder height.','Brace your ribs down as you press.','Finish with biceps beside ears.'],'Sit down if your lower back arches.'),
+        exercise('Dumbbell lateral raise','↗️','Two light dumbbells',3,'12–15',60,['Keep a small bend in your elbows.','Raise to shoulder height.','Lower slowly.'],'Do not swing or shrug.'),
+        exercise('Dumbbell front raise','⬆️','Two light dumbbells',2,'10–12',45,['Raise one or both dumbbells to shoulder height.','Keep ribs down.','Lower slowly.'],'Use very light weight.'),
+        exercise('Dumbbell rear-delt fly','↔️','Two light dumbbells',3,'12–15',45,['Hinge forward with a long spine.','Raise arms out and back.','Lower with control.'],'Keep your neck relaxed.') ] },
+      { id:'biceps', name:'Biceps', subtitle:'Elbow flexion and forearm control', icon:'💪', warmup:'3 minutes: light curls and shoulder circles.', exercises:[
+        exercise('Alternating dumbbell curl','💪','Two dumbbells',3,'8–12 each side',60,['Keep elbows near your ribs.','Turn your palm up as you curl.','Lower for a controlled count of two.'],'Do not lean back to lift.'),
+        exercise('Hammer curl','💪','Two dumbbells',3,'10–12',60,['Keep palms facing in.','Curl without moving your upper arms.','Lower slowly.'],'Avoid swinging.'),
+        exercise('Supported concentration curl','💪','One dumbbell',3,'10–12 each side',60,['Brace your elbow against the inside of your thigh.','Curl smoothly.','Lower all the way with control.'],'Keep your shoulder quiet.'),
+        exercise('Reverse curl','💪','Two light dumbbells',2,'12–15',45,['Keep palms facing down.','Curl with elbows close.','Lower slowly.'],'Use less weight than a normal curl.') ] },
+      { id:'triceps', name:'Triceps', subtitle:'Pressing lockout and elbow extension', icon:'⬆️', warmup:'3 minutes: light presses and arm circles.', exercises:[
+        exercise('Dumbbell triceps extension','⬆️','One dumbbell',3,'10–12',60,['Hold one dumbbell above your head.','Bend elbows to lower it behind your head.','Straighten elbows without arching.'],'Keep elbows pointing forward.'),
+        exercise('Dumbbell kickback','↗️','Two light dumbbells',3,'12–15',45,['Hinge forward and pin elbows to your sides.','Straighten elbows until arms are long.','Return slowly.'],'Do not swing the dumbbells.'),
+        exercise('Close-grip dumbbell floor press','⬆️','Two dumbbells',3,'8–12',75,['Keep dumbbells close together.','Lower elbows close to your ribs.','Press up smoothly.'],'Use a controlled tempo.'),
+        exercise('Bench triceps dip','◡','Bench',2,'8–12',60,['Keep hips close to the bench.','Bend elbows only as far as shoulders feel good.','Press the bench away.'],'Skip this if it bothers your shoulders.') ] },
+      { id:'forearms', name:'Forearms', subtitle:'Grip, wrists and lower arms', icon:'✊', warmup:'3 minutes: open and close your hands, then do light wrist curls.', exercises:[
+        exercise('Seated dumbbell wrist curl','💪','One light dumbbell',3,'12–15 each side',45,['Rest your forearm on your thigh with palm facing up.','Let the weight roll toward your fingers, then curl your wrist up.','Lower slowly through a comfortable range.'],'Keep the movement at the wrist; use a light weight.'),
+        exercise('Seated reverse wrist curl','💪','One very light dumbbell',2,'12–15 each side',45,['Rest your forearm on your thigh with palm facing down.','Raise the back of your hand without lifting your forearm.','Lower slowly.'],'Use very light weight and stop if your wrist hurts.'),
+        exercise('Hammer curl','💪','Two dumbbells',3,'10–12',60,['Keep palms facing in and elbows close to your ribs.','Curl without swinging your torso.','Lower for a controlled count of two.'],'Choose a weight you can lower slowly.'),
+        exercise('Farmer carry','🚶','Two dumbbells',3,'30–45 sec',60,['Hold a dumbbell at each side and stand tall.','Walk with short, steady steps and relaxed breathing.','Set the weights down carefully.'],'Use a lighter load if your grip or posture gives out.') ] },
+      { id:'lower', name:'Lower body', subtitle:'Quads, glutes and hamstrings', icon:'🏋️', warmup:'5 minutes: easy walk, ankle rocks, bodyweight squats and hip bridges.', exercises:[
+        exercise('Goblet squat','🏋️','One dumbbell',4,'8–10',90,['Hold one dumbbell at your chest.','Sit between your hips with feet planted.','Stand by pushing the floor away.'],'Keep knees tracking over toes.','Optional swap: barbell back squat.'),
+        exercise('Dumbbell split squat','🚶','Two dumbbells',3,'8–10 each side',75,['Use a stable staggered stance.','Lower straight down.','Drive through the front foot.'],'Start bodyweight only if balance is limiting.'),
+        exercise('Dumbbell Romanian deadlift','↙️','Two dumbbells',3,'8–10',90,['Push hips back with soft knees.','Keep weights close to your legs.','Stand by squeezing glutes.'],'Do not round through the lower back.','Optional swap: barbell Romanian deadlift.'),
+        exercise('Dumbbell glute bridge','◡','One dumbbell',3,'10–15',60,['Place a dumbbell across your hips.','Drive through heels to lift hips.','Pause and squeeze glutes at the top.'],'Keep ribs down.') ] }
+    ];
+    const plannerDefaults = [
+      { day:'Monday', focus:'Chest + triceps' }, { day:'Tuesday', focus:'Back + biceps' }, { day:'Wednesday', focus:'Rest' }, { day:'Thursday', focus:'Shoulders' }, { day:'Friday', focus:'Lower body' }, { day:'Saturday', focus:'Rest' }, { day:'Sunday', focus:'Rest' }
+    ];
+    const plannerOptions = ['Rest', 'Chest + triceps', 'Back + biceps', 'Lower body', 'Shoulders', 'Forearms', 'Foundation: Push', 'Foundation: Pull + Hinge', 'Foundation: Legs + Core'];
+    const workoutForFocus = focus => {
+      if (focus === 'Chest + triceps') return { name:focus, exercises:[...advancedWorkouts.find(w=>w.id==='chest').exercises.slice(0,3), ...advancedWorkouts.find(w=>w.id==='triceps').exercises.slice(0,2)] };
+      if (focus === 'Back + biceps') return { name:focus, exercises:[...advancedWorkouts.find(w=>w.id==='back').exercises.slice(0,3), ...advancedWorkouts.find(w=>w.id==='biceps').exercises.slice(0,2)] };
+      if (focus === 'Lower body') return advancedWorkouts.find(w=>w.id==='lower');
+      if (focus === 'Shoulders') return advancedWorkouts.find(w=>w.id==='shoulders');
+      if (focus === 'Forearms') return advancedWorkouts.find(w=>w.id==='forearms');
+      if (focus.startsWith('Foundation:')) return workouts.find(w => w.name === focus.replace('Foundation: ',''));
+      return { name:'Rest', exercises:[] };
+    };
+    const readJSON = (key, fallback, valid) => { try { const value=JSON.parse(localStorage.getItem(key)); return valid(value)?value:fallback; } catch { return fallback; } };
+    const saved = readJSON('gymResetHistory', [], value => Array.isArray(value) && value.every(item => item && typeof item.date === 'string' && typeof item.minutes === 'number'));
+    const defaultPlanner = plannerDefaults.map(day => ({...day, picked:workoutForFocus(day.focus).exercises.map(e=>e[0])}));
+    let planner = readJSON('gymResetPlanner', defaultPlanner, value => Array.isArray(value) && value.length===7 && value.every((item,i)=>item && item.day===plannerDefaults[i].day && typeof item.focus==='string' && Array.isArray(item.picked)));
+    const previousDefault = ['Chest + triceps','Back + biceps','Rest','Lower body','Shoulders','Rest','Rest'];
+    if (planner.every((item,index) => item.focus === previousDefault[index])) {
+      planner[3].focus = 'Shoulders'; planner[4].focus = 'Lower body';
+      planner[3].picked = planner[3].picked.filter(name => workoutForFocus('Shoulders').exercises.some(e => e[0] === name));
+      planner[4].picked = planner[4].picked.filter(name => workoutForFocus('Lower body').exercises.some(e => e[0] === name));
+      localStorage.setItem('gymResetPlanner', JSON.stringify(planner));
+    }
+    let active = null, exerciseIndex = 0, setsFinished = 0, elapsed = 0, rest = 0, timer = null;
+    const $ = id => document.getElementById(id);
+    const format = seconds => `${String(Math.max(0,seconds/60|0)).padStart(2,'0')}:${String(Math.max(0,seconds%60)).padStart(2,'0')}`;
+    const plannedWorkout = (item, index) => { const base=workoutForFocus(item.focus); const exercises=base.exercises.filter(e=>item.picked.includes(e[0])); return exercises.length ? {...base,id:`plan-${index}-${item.focus}`,name:`${item.day} · ${item.focus}`,subtitle:`${exercises.length} exercises selected`,icon:base.icon || '🏋️',exercises} : null; };
+    const nextWorkout = () => { const today=(new Date().getDay()+6)%7; for(let offset=0;offset<7;offset++){ const index=(today+offset)%7, workout=plannedWorkout(planner[index],index); if(workout)return workout; } if(saved.length){ const i=workouts.findIndex(w=>w.id===saved[0].workout); return workouts[(Math.max(i,0)+1)%workouts.length]; } return workouts[0]; };
+    function renderToday() { const w=nextWorkout(), today=(new Date().getDay()+6)%7; $('today-name').textContent=w.name; $('today-subtitle').textContent=w.subtitle; $('today-icon').textContent=w.icon; $('planned-count').textContent=planner.filter((item,index)=>plannedWorkout(item,index)).length; $('next-label').textContent=plannedWorkout(planner[today],today)?"⚡ TODAY'S SESSION":'⚡ NEXT UP'; }
+    function show(screen) { ['today','plan','progress','session'].forEach(s => $(`${s}-screen`).classList.toggle('hidden',s!==screen)); document.querySelector('.tabs').classList.toggle('hidden',screen==='session'); document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.screen===screen)); if(screen==='progress') renderProgress(); if(screen==='plan') renderPlan(); }
+    function start(workout = nextWorkout()) { if(!workout || !workout.exercises?.length){ alert('Choose at least one exercise for a workout day first.'); return; } active=workout; exerciseIndex=0; setsFinished=0; elapsed=0; rest=0; clearInterval(timer); timer=setInterval(tick,1000); renderExercise(); show('session'); }
+    function tick() { elapsed++; if(rest>0) rest--; $('session-clock').textContent=format(elapsed); $('rest-clock').textContent=format(rest); if(rest===0) { $('rest-box').classList.add('hidden'); $('complete-button').disabled=false; } }
+    function renderExercise() { const e=active.exercises[exerciseIndex]; $('progress-fill').style.width=`${exerciseIndex/active.exercises.length*100}%`; $('exercise-count').textContent=`Exercise ${exerciseIndex+1} of ${active.exercises.length}`; $('set-count').textContent=`Set ${setsFinished+1} of ${e[3]}`; $('exercise-icon').textContent=e[1]; $('exercise-name').textContent=e[0]; $('metric-sets').textContent=e[3]; $('metric-reps').textContent=e[4]; $('metric-rest').textContent=`${e[5]} sec`; $('equipment').textContent=e[2]; $('cues').innerHTML=e[6].map((cue,i)=>`<div class="cue"><i>${i+1}</i><span>${cue}</span></div>`).join(''); $('watchout').textContent=`⚠ ${e[7]}`; $('swap').textContent=e[8]; $('rest-box').classList.add('hidden'); $('complete-button').disabled=false; $('complete-button').textContent=setsFinished+1===e[3]?(exerciseIndex+1===active.exercises.length?'Finish workout':'Finish exercise'):`Complete set ${setsFinished+1} of ${e[3]}`; }
+    function completeSet() { const e=active.exercises[exerciseIndex]; if(setsFinished+1===e[3]) { if(exerciseIndex+1===active.exercises.length) { finish(); } else { exerciseIndex++; setsFinished=0; renderExercise(); } } else { setsFinished++; rest=e[5]; $('rest-clock').textContent=format(rest); $('rest-box').classList.remove('hidden'); $('complete-button').disabled=true; $('set-count').textContent=`Set ${setsFinished+1} of ${e[3]}`; $('complete-button').textContent=`Complete set ${setsFinished+1} of ${e[3]}`; } }
+    function finish() { clearInterval(timer); saved.unshift({workout:active.id,name:active.name,date:new Date().toISOString(),minutes:Math.max(1,Math.round(elapsed/60))}); localStorage.setItem('gymResetHistory',JSON.stringify(saved)); alert('Workout complete. Nice work. Your next session is ready whenever you are.'); renderToday(); show('today'); }
+    function skipExercise() { if(exerciseIndex + 1 === active.exercises.length) { clearInterval(timer); alert('Workout ended without being saved because the final exercise was skipped.'); show('today'); return; } exerciseIndex++; setsFinished=0; rest=0; renderExercise(); }
+    let planMode = 'foundation';
+    function workoutDetail(w, startable = false) { return `<article class="card"><h2>${w.name}</h2><p class="subtle">${w.warmup || 'A focused 45-minute dumbbell session.'}</p>${w.exercises.map(e=>`<div class="exercise-row"><span class="row-icon">${e[1]}</span><div><strong>${e[0]}</strong><p>${e[3]} sets × ${e[4]} · ${e[5]} sec rest</p></div></div>`).join('')}${startable ? '<button class="button" id="start-selected">Start this workout</button>' : ''}</article>`; }
+    function renderPlanner() {
+      $('plan-list').innerHTML = `<div class="planner-note"><strong>A balanced starting week</strong><br>Chest + triceps, back + biceps, shoulders and lower body on Friday. Three rest days are deliberate. Change any day below. Your choices save on this phone.</div>${planner.map((item, index) => { const choice = workoutForFocus(item.focus); const exercises = choice.exercises; const selected=plannedWorkout(item,index); return `<article class="planner-day"><header><strong>${item.day}</strong><select aria-label="${item.day} workout" data-focus-index="${index}">${plannerOptions.map(option => `<option ${option === item.focus ? 'selected' : ''}>${option}</option>`).join('')}</select></header>${item.focus === 'Rest' ? '<p class="rest-day">Rest day. A walk or gentle mobility is optional.</p>' : `<div class="planner-exercises">${exercises.map(e => `<label><input type="checkbox" data-exercise-index="${index}" value="${e[0]}" ${item.picked.includes(e[0]) ? 'checked' : ''}>${e[0]}</label>`).join('')||'<p class="subtle">No exercises selected.</p>'}</div><button class="button" data-start-planned="${index}" ${selected?'':'disabled'}>${selected?'Start '+item.day+' workout':'Select an exercise to start'}</button>`}</article>`; }).join('')}`;
+      $('plan-detail').innerHTML = '';
+      document.querySelectorAll('[data-focus-index]').forEach(select => select.onchange = event => { const index = Number(event.target.dataset.focusIndex); planner[index].focus = event.target.value; planner[index].picked = workoutForFocus(event.target.value).exercises.map(e=>e[0]); savePlanner(); renderPlanner(); });
+      document.querySelectorAll('[data-exercise-index]').forEach(box => box.onchange = event => { const index = Number(event.target.dataset.exerciseIndex); const set = new Set(planner[index].picked); event.target.checked ? set.add(event.target.value) : set.delete(event.target.value); planner[index].picked = [...set]; savePlanner(); renderPlanner(); });
+      document.querySelectorAll('[data-start-planned]').forEach(button => button.onclick = () => { const index=Number(button.dataset.startPlanned); start(plannedWorkout(planner[index],index)); });
+    }
+    function savePlanner() { localStorage.setItem('gymResetPlanner', JSON.stringify(planner)); renderToday(); }
+    function renderPlan() {
+      document.querySelectorAll('[data-mode]').forEach(button => { button.classList.toggle('active', button.dataset.mode === planMode); button.onclick = () => { planMode = button.dataset.mode; renderPlan(); }; });
+      if (planMode === 'planner') { renderPlanner(); return; }
+      const list = planMode === 'advanced' ? advancedWorkouts : workouts;
+      $('plan-list').innerHTML = `<p class="subtle small">${planMode === 'advanced' ? 'Focused sessions. Train one muscle group at a time, with enough work to fill about 45 minutes.' : 'Dumbbell-first restart plan. Train these three sessions in order.'}</p>${list.map(w=>`<button class="plan-card" data-workout="${w.id}"><span class="mark">${w.icon}</span><span><strong>${w.name}</strong><p>${w.subtitle}</p></span><span>›</span></button>`).join('')}`;
+      $('plan-detail').innerHTML = '';
+      document.querySelectorAll('[data-workout]').forEach(button => button.onclick = () => { const w = list.find(item => item.id === button.dataset.workout); $('plan-detail').innerHTML = workoutDetail(w, true); $('start-selected').onclick = () => start(w); window.scrollTo({top:document.body.scrollHeight, behavior:'smooth'}); });
+    }
+    function renderProgress() { $('session-total').textContent=saved.length; $('history-content').innerHTML=saved.length?`<ul class="history">${saved.map(s=>{const w=workouts.find(x=>x.id===s.workout) || advancedWorkouts.find(x=>x.id===s.workout) || {name:s.name || s.workout},d=new Date(s.date);return `<li><span><strong>${s.name || w.name}</strong><small>${d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})}</small></span><small>${s.minutes} min</small></li>`}).join('')}</ul>`:`<div class="empty">Your history starts here.<br>Finish a workout and it stays saved on this phone.</div>`; }
+    $('start-button').onclick=()=>start(); $('complete-button').onclick=completeSet; $('skip-rest').onclick=()=>{rest=0}; $('skip-exercise').onclick=skipExercise; $('end-button').onclick=()=>{if(confirm('End this workout? Completed sets will not be saved.')) {clearInterval(timer);show('today');}}; document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>show(t.dataset.screen)); renderToday();
+    if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+  </script>
+</body>
+</html>
