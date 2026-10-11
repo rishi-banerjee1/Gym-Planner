@@ -1,0 +1,24 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build and verify
+    runs-on: macos-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - name: Verify web app
+        run: node scripts/check-web.mjs
+      - name: Build iOS app
+        run: xcodebuild -project GymReset/GymReset.xcodeproj -scheme GymReset -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build
+      - name: Build macOS app
+        run: xcodebuild -project GymReset/GymReset.xcodeproj -scheme GymReset -destination 'generic/platform=macOS' CODE_SIGNING_ALLOWED=NO build
