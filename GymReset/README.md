@@ -15,6 +15,8 @@ No workout or health information leaves the device. The app is a training compan
 
 Train three non-consecutive days each week in order: Push, Pull + Hinge, and Legs + Core. A simple weekly rhythm is Monday Push, Wednesday Pull + Hinge, and Friday Legs + Core. Start comfortably: choose loads that leave roughly two good repetitions in reserve. When all prescribed sets feel controlled, increase the load at the next session by the smallest available increment.
 
+In My Week, tap an exercise name to see equipment, form cues, and watch-outs; its separate switch controls whether it is included in that day. In Progress, use **Log a past workout** to record a session you completed without tracking it live. Ending a session or skipping its final exercise also offers to save the workout.
+
 The Advanced mode includes focused sessions for chest, back, shoulders, biceps, triceps, forearms, and lower body. The Planner starts with a balanced week and puts lower body on Friday; you can change days, choose exercises, or make any day a rest day.
 
 The optional barbell movements are replacements, not extra work. Keep the dumbbell version when you are unsure.

@@ -7,7 +7,7 @@ Gym Planner is a simple workout companion for restarting gym training. It is des
 - **Foundation:** a three-session Push, Pull + Hinge, Legs + Core rotation for easing back into training.
 - **Advanced:** focused sessions for chest, back, shoulders, biceps, triceps, forearms, and lower body.
 - **Planner:** a configurable seven-day week with exercise selection and optional rest days. The suggested week places lower body on Friday.
-- **Workout companion:** set guidance, rest timer, exercise cues, skip controls, and local workout history.
+- **Workout companion:** set guidance, rest timer, tappable exercise details in the planner, skip controls, and local workout history. Log a session afterward from Progress if you did not track it live.
 - **Offline-minded storage:** the native app stores the plan and history on the device. The web app stores them in that browser on that device; neither version has a sign-in or cloud sync.
 
 The workouts are suggestions, not medical advice. Begin with a manageable load, use controlled form, and stop if you feel sharp pain, dizziness, or anything concerning.

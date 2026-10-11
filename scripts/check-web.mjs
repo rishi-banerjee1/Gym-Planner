@@ -14,5 +14,8 @@ for (const required of ['name', 'short_name', 'description', 'start_url', 'displ
 if (!html.includes("id:'forearms'") || !html.includes("day:'Friday', focus:'Lower body'")) {
   throw new Error('Expected forearm training and a Friday lower-body default in the web app');
 }
+for (const required of ['id="log-dialog"', 'Log a past workout', '<details><summary>', 'recordWorkout(active']) {
+  if (!html.includes(required)) throw new Error(`Web app is missing workout logging or planner exercise details: ${required}`);
+}
 
-console.log('Web app syntax, manifest, forearms, and Friday lower-body default verified.');
+console.log('Web app syntax, manifest, workout logging, planner exercise details, forearms, and Friday lower-body default verified.');
