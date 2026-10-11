@@ -688,28 +688,7 @@ struct WorkoutPlanDetail: View {
 
                 Text("WORKOUT").font(.caption.bold()).tracking(1).foregroundStyle(.secondary).padding(.horizontal, 2)
                 ForEach(Array(day.workout.exercises.enumerated()), id: \.element.id) { offset, exercise in
-                    DisclosureGroup {
-                        VStack(alignment: .leading, spacing: 11) {
-                            Text(exercise.equipment).font(.subheadline.weight(.medium)).foregroundStyle(.secondary)
-                            ForEach(Array(exercise.cues.enumerated()), id: \.offset) { cue in
-                                HStack(alignment: .top, spacing: 8) {
-                                    Text("\(cue.offset + 1)").font(.caption2.bold()).foregroundStyle(Color.gymInk).frame(width: 20, height: 20).background(Color.gymMint, in: Circle())
-                                    Text(cue.element).font(.subheadline)
-                                }
-                            }
-                            Label(exercise.watchOut, systemImage: "exclamationmark.triangle.fill").font(.caption).foregroundStyle(.orange)
-                            if let swap = exercise.swap { Text(swap).font(.caption).foregroundStyle(.secondary) }
-                        }.padding(.top, 10)
-                    } label: {
-                        HStack(spacing: 12) {
-                            Text("\(offset + 1)").font(.caption.bold()).foregroundStyle(day.accent).frame(width: 28, height: 28).background(day.accent.opacity(0.12), in: Circle())
-                            VStack(alignment: .leading, spacing: 3) {
-                                Text(exercise.name).font(.headline)
-                                Text("\(exercise.sets) sets × \(exercise.reps)  ·  \(exercise.rest)s rest").font(.caption).foregroundStyle(.secondary)
-                            }
-                        }
-                    }
-                    .padding(16).background(Color.gymCard, in: RoundedRectangle(cornerRadius: 18))
+                    WorkoutPlanExerciseRow(exercise: exercise, number: offset + 1, accent: day.accent)
                 }
 
                 Button { showingSession = true } label: {
@@ -728,6 +707,41 @@ struct WorkoutPlanDetail: View {
                 .presentationDragIndicator(.hidden)
         }
     }
+}
+
+private struct WorkoutPlanExerciseRow: View {
+    let exercise: Exercise
+    let number: Int
+    let accent: Color
+
+    var body: some View {
+        Button {
+            showingGuide = true
+        } label: {
+            HStack(spacing: 12) {
+                Text("\(number)").font(.caption.bold()).foregroundStyle(accent)
+                    .frame(width: 28, height: 28).background(accent.opacity(0.12), in: Circle())
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(exercise.name).font(.headline).foregroundStyle(.primary)
+                    Text("\(exercise.sets) sets × \(exercise.reps)  ·  \(exercise.rest)s rest")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+                Spacer()
+                Image(systemName: "info.circle").foregroundStyle(accent)
+            }
+            .padding(16).contentShape(Rectangle())
+            .background(Color.gymCard, in: RoundedRectangle(cornerRadius: 18))
+        }
+        .buttonStyle(.plain)
+        .accessibilityHint("Shows exercise instructions")
+        .sheet(isPresented: $showingGuide) {
+            PlannerExerciseInfoView(exercise: exercise)
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
+        }
+    }
+
+    @State private var showingGuide = false
 }
 
 struct PlannedDay: Codable, Identifiable {
@@ -1006,12 +1020,20 @@ private struct PlannerExerciseInfoView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                    Text("\(exercise.sets) sets × \(exercise.reps) reps  ·  \(exercise.rest)s rest")
-                        .font(.subheadline.weight(.semibold))
+                    Image(systemName: exercise.symbol)
+                        .font(.system(size: 42)).foregroundStyle(Color.gymInk)
+                        .frame(width: 80, height: 80)
+                        .background(Color.gymMint, in: RoundedRectangle(cornerRadius: 24))
+                    Text(exercise.name).font(.largeTitle.bold())
+                    HStack(spacing: 8) {
+                        MetricPill(label: "SETS", value: "\(exercise.sets)")
+                        MetricPill(label: "REPS", value: exercise.reps)
+                        MetricPill(label: "REST", value: "\(exercise.rest)s")
+                    }
                     Label(exercise.equipment, systemImage: "dumbbell.fill")
-                        .font(.subheadline).foregroundStyle(.secondary)
+                        .font(.subheadline.weight(.medium)).foregroundStyle(.secondary)
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("How to do it").font(.headline)
+                        Label("How to do it", systemImage: "figure.walk").font(.headline)
                         ForEach(Array(exercise.cues.enumerated()), id: \.offset) { index, cue in
                             HStack(alignment: .top, spacing: 10) {
                                 Text("\(index + 1)").font(.caption.bold()).foregroundStyle(.white)
