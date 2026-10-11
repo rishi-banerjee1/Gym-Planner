@@ -33,7 +33,7 @@ xcodebuild -project GymReset/GymReset.xcodeproj -scheme GymReset -destination 'g
 xcodebuild -project GymReset/GymReset.xcodeproj -scheme GymReset -destination 'generic/platform=macOS' CODE_SIGNING_ALLOWED=NO build
 ```
 
-GitHub Actions runs the same checks for pull requests and updates to `main`. Changes should go through a pull request, and the required CI build must pass before merging.
+GitHub Actions runs the same checks for pull requests and updates to `main`. Changes should go through a pull request, and the CI build should pass before merging. Main-branch protection is not enabled yet; an owner can require pull requests and the `Build and verify` check in repository settings when the GitHub plan supports it.
 
 ## Repository layout
 
